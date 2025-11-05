@@ -494,14 +494,79 @@ class SelectTool {
       }
     }
 
-    // Special handling for text elements - scale font size based on height
+    // Special handling for text elements - maintain aspect ratio and recalculate dimensions
     if (initial.type === 'text') {
-      const heightRatio = newProps.height / initial.height;
       const currentFontSize = initial.fontSize || 20;
-      newProps.fontSize = Math.max(8, Math.round(currentFontSize * heightRatio));
+      
+      // Calculate scale based on the dominant dimension being resized
+      let scale = 1;
+      
+      // Determine which dimension changed more (to decide scaling direction)
+      const widthChange = Math.abs(newProps.width - initial.width);
+      const heightChange = Math.abs(newProps.height - initial.height);
+      
+      if (heightChange > widthChange) {
+        // Height-based scaling
+        scale = newProps.height / initial.height;
+      } else {
+        // Width-based scaling
+        scale = newProps.width / initial.width;
+      }
+      
+      // Calculate new font size
+      const newFontSize = Math.max(8, Math.round(currentFontSize * scale));
+      
+      // Recalculate text dimensions based on new font size
+      const newDimensions = this.measureTextDimensions(
+        initial.text || '',
+        newFontSize,
+        initial.fontFamily || 'Arial, sans-serif',
+        initial.fontWeight || 'normal'
+      );
+      
+      // Update properties with correct dimensions
+      newProps.fontSize = newFontSize;
+      newProps.width = newDimensions.width;
+      newProps.height = newDimensions.height;
+      
+      // Adjust position for corner handles to maintain the correct corner position
+      if (handle.includes('n')) {
+        // Top edge moved - adjust y to keep bottom in place
+        newProps.y = initial.y + initial.height - newProps.height;
+      }
+      if (handle.includes('w')) {
+        // Left edge moved - adjust x to keep right in place
+        newProps.x = initial.x + initial.width - newProps.width;
+      }
     }
 
     return newProps;
+  }
+
+  /**
+   * Measure text dimensions for a given font size
+   */
+  measureTextDimensions(text, fontSize, fontFamily, fontWeight) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    
+    const lines = text.split('\n');
+    let maxWidth = 0;
+    
+    lines.forEach(line => {
+      const metrics = ctx.measureText(line || ' ');
+      maxWidth = Math.max(maxWidth, metrics.width);
+    });
+    
+    const lineHeight = fontSize * 1.4;
+    const height = lines.length * lineHeight;
+    
+    return {
+      width: Math.max(100, maxWidth + 10),
+      height: Math.max(24, height),
+    };
   }
 
   getResizeCursor(handle) {
