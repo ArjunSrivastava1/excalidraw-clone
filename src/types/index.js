@@ -1,16 +1,17 @@
+// src/types/index.js
+
 /**
- * Data Models and Type Definitions for Excalidraw Clone
- * Using JSDoc for type documentation
+ * @typedef {'select' | 'rectangle' | 'ellipse' | 'arrow' | 'draw' | 'text' | 'eraser' | 'mermaid'} ToolType
  */
 
 /**
- * @typedef {'select' | 'rectangle' | 'ellipse' | 'arrow' | 'draw' | 'text' | 'eraser'} ToolType
+ * @typedef {'rectangle' | 'ellipse' | 'arrow' | 'draw' | 'text' | 'mermaid'} ElementType
  */
 
 /**
- * @typedef {Object} Element
+ * @typedef {Object} MermaidElement
  * @property {string} id - Unique identifier
- * @property {'rectangle' | 'ellipse' | 'arrow' | 'draw' | 'text'} type - Element type
+ * @property {'mermaid'} type - Element type
  * @property {number} x - X coordinate
  * @property {number} y - Y coordinate
  * @property {number} width - Element width
@@ -22,33 +23,15 @@
  * @property {number} seed - Random seed for consistent rendering
  * @property {number} angle - Rotation angle in degrees
  * @property {number} opacity - Opacity (0-100)
- * @property {Object[]} [points] - For draw/arrow elements
- * @property {string} [text] - For text elements
- * @property {number} [fontSize] - For text elements
- * @property {string} [fontFamily] - For text elements
+ * @property {string} mermaidCode - The Mermaid diagram code
+ * @property {string} renderedSvg - Cached SVG rendering
+ * @property {string} theme - Mermaid theme name
+ * @property {string} diagramType - Type of diagram (flowchart, sequence, etc.)
+ * @property {Object} mermaidConfig - Mermaid configuration options
  */
 
 /**
- * @typedef {Object} AppState
- * @property {ToolType} currentTool - Currently selected tool
- * @property {string} strokeColor - Current stroke color
- * @property {string} fillColor - Current fill color
- * @property {number} strokeWidth - Current stroke width
- * @property {number} opacity - Current opacity (0-100)
- * @property {number} zoom - Zoom level (0.1 - 3)
- * @property {number} scrollX - Pan X offset
- * @property {number} scrollY - Pan Y offset
- * @property {string[]} selectedElementIds - IDs of selected elements
- */
-
-/**
- * @typedef {Object} Canvas
- * @property {string} id - Unique canvas identifier
- * @property {string} name - Canvas name
- * @property {Element[]} elements - Array of elements on canvas
- * @property {AppState} appState - Current app state
- * @property {string} createdAt - ISO timestamp
- * @property {string} updatedAt - ISO timestamp
+ * @typedef {RectangleElement | EllipseElement | ArrowElement | DrawElement | TextElement | MermaidElement} Element
  */
 
 /**
@@ -60,7 +43,7 @@
  * @returns {Element}
  */
 export const createElement = (type, x, y, options = {}) => {
-  return {
+  const baseElement = {
     id: options.id || `el_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     type,
     x,
@@ -74,13 +57,43 @@ export const createElement = (type, x, y, options = {}) => {
     seed: options.seed || Math.floor(Math.random() * 2 ** 31),
     angle: options.angle || 0,
     opacity: options.opacity || 100,
-    ...(type === 'draw' || type === 'arrow' ? { points: options.points || [] } : {}),
-    ...(type === 'text' ? {
-      text: options.text || '',
-      fontSize: options.fontSize || 20,
-      fontFamily: options.fontFamily || 'Arial'
-    } : {}),
   };
+
+  // Add type-specific properties
+  switch (type) {
+    case 'draw':
+    case 'arrow':
+      return {
+        ...baseElement,
+        points: options.points || [],
+      };
+      
+    case 'text':
+      return {
+        ...baseElement,
+        text: options.text || '',
+        fontSize: options.fontSize || 20,
+        fontFamily: options.fontFamily || 'Arial',
+        fontWeight: options.fontWeight || 'normal',
+        textAlign: options.textAlign || 'left',
+      };
+      
+    case 'mermaid':
+      return {
+        ...baseElement,
+        mermaidCode: options.mermaidCode || 'graph TD\n  A[Start] --> B{Decision}',
+        renderedSvg: options.renderedSvg || '',
+        theme: options.theme || 'default',
+        diagramType: options.diagramType || 'flowchart',
+        mermaidConfig: options.mermaidConfig || {},
+        // Set reasonable default size for Mermaid elements
+        width: options.width || 400,
+        height: options.height || 300,
+      };
+      
+    default:
+      return baseElement;
+  }
 };
 
 /**
@@ -126,3 +139,6 @@ export const createDefaultAppState = () => ({
   scrollY: 0,
   selectedElementIds: [],
 });
+
+/*figure out the create element for mermaid*/
+

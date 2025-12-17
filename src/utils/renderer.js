@@ -264,6 +264,9 @@ export const renderElement = (rc, ctx, element, zoom = 1) => {
       case 'text':
         renderText(ctx, element, zoom);
         break;
+      case 'mermaid': // Add Mermaid case
+        renderMermaid(ctx, element, zoom);
+        break;
       default:
         console.warn(`Unknown element type: ${element.type}`);
     }
@@ -321,4 +324,36 @@ export const getViewportBounds = (scrollX, scrollY, width, height, zoom) => ({
   minY: -scrollY / zoom,
   maxX: (width - scrollX) / zoom,
   maxY: (height - scrollY) / zoom,
-});
+})
+
+/**
+ * Render a Mermaid element
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {Object} element - Mermaid element to render
+ * @param {Number} zoom - Current zoom level
+ */
+export const renderMermaid = (ctx, element, zoom = 1) => {
+  const { x, y, width, height, stroke, strokeWidth, opacity } = element;
+  
+  ctx.save();
+  ctx.strokeStyle = stroke;
+  ctx.fillStyle = '#f8fafc';
+  ctx.lineWidth = strokeWidth;
+  ctx.globalAlpha = (opacity || 100) / 100;
+  
+  // Draw bounding box
+  ctx.strokeRect(x, y, width, height);
+  ctx.fillRect(x, y, width, height);
+  
+  // Draw Mermaid branding
+  ctx.fillStyle = stroke;
+  ctx.font = `${14 / zoom}px Arial`;
+  ctx.fillText('📊 Mermaid Diagram', x + 10 / zoom, y + 20 / zoom);
+  
+  // Draw diagram type
+  ctx.font = `${12 / zoom}px Arial`;
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText(`${element.diagramType || 'flowchart'}`, x + 10 / zoom, y + 40 / zoom);
+  
+  ctx.restore();
+};

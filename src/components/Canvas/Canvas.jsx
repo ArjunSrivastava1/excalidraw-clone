@@ -90,6 +90,15 @@ const Canvas = () => {
     getClipboard: () => clipboard,
     setClipboard: setClipboard,
     getCurrentStyle: getCurrentStyle,
+    // Add Mermaid-specific methods - these will be used by the tool
+    openMermaidEditor: (x, y) => {
+      // This is now handled by the App component via setEditorCallbacks
+      console.log('Mermaid editor requested via state at:', x, y);
+    },
+    closeMermaidEditor: () => {
+      // This is now handled by the App component via setEditorCallbacks
+      console.log('Mermaid editor close requested via state');
+    },
   }), [zoom, scrollX, scrollY, currentCanvas, selectedElementIds, setSelectedElements, setCurrentTool,
       updateElement, deleteElement, addElement, commitToHistory, clipboard, setClipboard, getCurrentStyle]);
 

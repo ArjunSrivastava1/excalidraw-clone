@@ -1,5 +1,5 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { createRoot } from 'react-dom/client'  // ← ADD THIS IMPORT!
 import './index.css'
 import App from './App.jsx'
 import { useCanvasStore, useEditorStore } from './store'
@@ -23,6 +23,7 @@ if (import.meta.env.DEV) {
   console.log('  switchTool(name) - Switch tool (select, rectangle, ellipse, arrow, draw, text, eraser)');
 }
 
+// Now createRoot is defined!
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />

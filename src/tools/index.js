@@ -5,6 +5,7 @@ import ArrowTool from './ArrowTool';
 import DrawTool from './DrawTool';
 import TextTool from './TextTool';
 import EraserTool from './EraserTool';
+import MermaidTool from './MermaidTool';
 
 // Tool registry
 export const tools = {
@@ -15,6 +16,7 @@ export const tools = {
   draw: new DrawTool(),
   text: new TextTool(),
   eraser: new EraserTool(),
+  mermaid: new MermaidTool(),
 };
 
 // Get tool by name

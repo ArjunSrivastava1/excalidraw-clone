@@ -175,7 +175,24 @@ export const exportToPNG = (canvas, filename = 'canvas.png') => {
           ctx.fillStyle = element.stroke;
           ctx.fillText(element.text || '', x, y + element.fontSize);
           break;
-      }
+          
+        case 'mermaid':
+          // For Mermaid elements, we need special handling
+          if (element.renderedSvg) {
+            // Convert SVG to canvas drawing
+            // This is complex - for now, draw placeholder
+            ctx.strokeStyle = element.stroke;
+            ctx.fillStyle = '#f8fafc';
+            ctx.lineWidth = element.strokeWidth;
+            ctx.strokeRect(x, y, element.width, element.height);
+            ctx.fillRect(x, y, element.width, element.height);
+    
+            ctx.fillStyle = element.stroke;
+            ctx.font = '14px Arial';
+            ctx.fillText('📊 Mermaid Diagram', x + 10, y + 20);
+          }
+        break;
+        }
       
       ctx.globalAlpha = 1;
     });
@@ -370,7 +387,21 @@ export const exportToSVG = (canvas, filename = 'canvas.svg') => {
           node.setAttribute('fill', element.stroke);
           node.textContent = element.text || '';
           break;
-      }
+      
+        case 'mermaid':
+          if (element.renderedSvg) {
+            // Embed the Mermaid SVG directly
+            // Note: This requires proper SVG embedding logic
+            const mermaidSvg = element.renderedSvg;
+            svgContent += `    <!-- Mermaid Diagram: ${element.id} -->\n`;
+            svgContent += `    <g transform="translate(${x},${y})">\n`;
+            // Extract and embed the Mermaid SVG content
+            const mermaidContent = mermaidSvg.replace(/<svg[^>]*>|<\/svg>/g, '');
+            svgContent += `      ${mermaidContent}\n`;
+            svgContent += `    </g>\n`;
+          }
+          break;
+        }
       
       if (node) {
         if (element.opacity !== 100) {

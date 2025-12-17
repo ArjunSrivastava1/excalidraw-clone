@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Menu } from 'lucide-react';
 import CanvasManager from './components/CanvasManager/CanvasManager';
 import Canvas from './components/Canvas';
@@ -6,16 +6,23 @@ import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import FloatingActions from './components/FloatingActions';
 import UndoRedo from './components/UndoRedo';
+import MermaidPanel from './components/MermaidPanel/MermaidPanel';
 import { useCanvasStore, useEditorStore } from './store';
 import { useToolShortcuts, useUndoRedoShortcuts, useSelectAllShortcut } from './hooks';
 import { migrateAllCanvases } from './utils/migration';
+import { getTool } from './tools';
 import './App.css';
 
 const App = () => {
   const [isCanvasManagerOpen, setIsCanvasManagerOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [mermaidEditor, setMermaidEditor] = useState({ isOpen: false, position: null });
+  
   const { currentCanvas, loadLastCanvas, createCanvas, undo, redo } = useCanvasStore();
-  const { setCurrentTool, setSelectedElements } = useEditorStore();
+  const { setCurrentTool, setSelectedElements, currentTool } = useEditorStore();
+
+  // Use ref to track the current tool instance
+  const currentToolInstanceRef = useRef(null);
 
   // Enable keyboard shortcuts for tools
   useToolShortcuts(setCurrentTool);
@@ -25,10 +32,8 @@ const App = () => {
   
   // Handle select all (Ctrl+A)
   const handleSelectAll = useCallback(() => {
-    // Switch to select tool
     setCurrentTool('select');
     
-    // Select all elements on the canvas
     if (currentCanvas && currentCanvas.elements.length > 0) {
       const allElementIds = currentCanvas.elements.map(el => el.id);
       setSelectedElements(allElementIds);
@@ -38,27 +43,65 @@ const App = () => {
   // Enable keyboard shortcut for select all
   useSelectAllShortcut(handleSelectAll);
 
+  // Handle Mermaid editor open/close
+  const handleOpenMermaidEditor = useCallback((position) => {
+    setMermaidEditor({ isOpen: true, position });
+  }, []);
+
+  const handleCloseMermaidEditor = useCallback(() => {
+    setMermaidEditor({ isOpen: false, position: null });
+    
+    // Reset Mermaid tool state
+    if (currentToolInstanceRef.current && currentToolInstanceRef.current.reset) {
+      currentToolInstanceRef.current.reset();
+    }
+  }, []);
+
+  const handleInsertMermaidElement = useCallback((elementData) => {
+    if (currentToolInstanceRef.current && currentToolInstanceRef.current.insertMermaidElement) {
+      currentToolInstanceRef.current.insertMermaidElement(elementData);
+    }
+    handleCloseMermaidEditor();
+  }, [handleCloseMermaidEditor]);
+
   // Initialize app - load last canvas or show canvas manager
   useEffect(() => {
-    // Run data migrations first
     migrateAllCanvases();
     
-    // Then load the last canvas
     const initialized = loadLastCanvas();
     
-    // If no canvas was loaded, create a default one or show canvas manager
     if (!initialized) {
-      // Option 1: Automatically create a default canvas
       createCanvas('Untitled Canvas');
-      
-      // Option 2: Show canvas manager instead
-      // setIsCanvasManagerOpen(true);
     }
   }, [loadLastCanvas, createCanvas]);
 
+  // Update tool instance ref when tool changes
+  useEffect(() => {
+    currentToolInstanceRef.current = getTool(currentTool);
+  }, [currentTool]);
+
+  // Set up Mermaid tool callbacks when Mermaid tool is active
+  useEffect(() => {
+    const currentToolInstance = currentToolInstanceRef.current;
+    
+    if (currentTool === 'mermaid' && currentToolInstance) {
+      // Set up the editor callbacks
+      if (currentToolInstance.setEditorCallbacks) {
+        currentToolInstance.setEditorCallbacks(
+          handleOpenMermaidEditor,
+          handleCloseMermaidEditor
+        );
+      }
+      
+      // Also set the callbacks directly as properties (backup)
+      currentToolInstance.openMermaidEditor = handleOpenMermaidEditor;
+      currentToolInstance.closeMermaidEditor = handleCloseMermaidEditor;
+    }
+  }, [currentTool, handleOpenMermaidEditor, handleCloseMermaidEditor]);
+
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 overflow-hidden">
-      {/* Toolbar at Top (replaces navbar) */}
+      {/* Toolbar at Top */}
       {currentCanvas && <Toolbar />}
 
       {/* Main Canvas Area */}
@@ -73,7 +116,7 @@ const App = () => {
           </div>
         )}
 
-        {/* Hamburger Toggle Button - Always Fixed in Same Position */}
+        {/* Hamburger Toggle Button */}
         {currentCanvas && (
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -107,6 +150,16 @@ const App = () => {
           <Sidebar 
             isOpen={isSidebarOpen}
             onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          />
+        )}
+
+        {/* Mermaid Editor Panel */}
+        {mermaidEditor.isOpen && currentCanvas && (
+          <MermaidPanel
+            position={mermaidEditor.position}
+            onInsert={handleInsertMermaidElement}
+            onClose={handleCloseMermaidEditor}
+            toolRef={currentToolInstanceRef.current}
           />
         )}
       </main>

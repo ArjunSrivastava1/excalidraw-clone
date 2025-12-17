@@ -1,3 +1,4 @@
+// src/components/toolbar/toolbar.jsx
 import { 
   MousePointer2,
   Hand,
@@ -11,17 +12,18 @@ import {
   Image,
   Lock,
   LockOpen,
+  // Remove: Diagram ← Remove this line
 } from 'lucide-react';
 import ToolButton from './ToolButton';
 import { useEditorStore } from '../../store';
 import { TOOLS } from '../../constants';
 import { useState } from 'react';
 
-/**
- * Main Toolbar Component
- * Displays all drawing tools in a centered horizontal toolbar
- * Inspired by Excalidraw's clean design
- */
+const DiagramIcon = () => (
+  <span style={{ fontSize: '20px' }}>📊</span>
+);
+
+
 export default function Toolbar() {
   const { currentTool, setCurrentTool } = useEditorStore();
   const [isLocked, setIsLocked] = useState(false);
@@ -53,7 +55,7 @@ export default function Toolbar() {
       label: 'Hand',
       shortcut: 'H',
       description: 'Pan canvas (or hold Space)',
-      disabled: true, // Will implement pan mode later
+      disabled: true,
     },
     {
       type: 'separator',
@@ -78,7 +80,7 @@ export default function Toolbar() {
       label: 'Diamond',
       shortcut: 'D',
       description: 'Draw a diamond',
-      disabled: true, // Not implemented yet
+      disabled: true,
     },
     {
       id: TOOLS.ARROW,
@@ -105,12 +107,19 @@ export default function Toolbar() {
       description: 'Add text',
     },
     {
+      id: TOOLS.MERMAID,
+      icon: DiagramIcon,  // ← Use the emoji component
+      label: 'Mermaid',
+      shortcut: 'M', 
+      description: 'Create Mermaid diagrams',
+    },
+    {
       id: 'image',
       icon: Image,
       label: 'Image',
       shortcut: 'I',
       description: 'Insert image',
-      disabled: true, // Not implemented yet
+      disabled: true,
     },
     {
       type: 'separator',
@@ -125,13 +134,11 @@ export default function Toolbar() {
   ];
 
   const handleToolClick = (toolId) => {
-    // Handle lock button
     if (toolId === 'lock') {
       setIsLocked(!isLocked);
       return;
     }
 
-    // Handle other tools
     if (toolId && toolId !== 'hand' && toolId !== 'diamond' && toolId !== 'image') {
       setCurrentTool(toolId);
     }

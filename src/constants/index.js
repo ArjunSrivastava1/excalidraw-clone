@@ -11,6 +11,7 @@ export const TOOLS = {
   DRAW: 'draw',
   TEXT: 'text',
   ERASER: 'eraser',
+  MERMAID: 'mermaid',
 };
 
 // Element types
@@ -20,6 +21,7 @@ export const ELEMENT_TYPES = {
   ARROW: 'arrow',
   DRAW: 'draw',
   TEXT: 'text',
+  MERMAID: 'mermaid',
 };
 
 // Color palette (Excalidraw-style)
@@ -190,6 +192,7 @@ export const SHORTCUTS = {
   ZOOM_IN: 'ctrl+=',
   ZOOM_OUT: 'ctrl+-',
   ZOOM_RESET: 'ctrl+0',
+  MERMAID: 'm',
 };
 
 // Auto-save settings
@@ -207,4 +210,31 @@ export const DEFAULT_ELEMENT = {
   ROUGHNESS: 1,
   FONT_SIZE: FONT_SIZES.MEDIUM,
   FONT_FAMILY: 'Arial',
+};
+
+// Mermaid-specific constants
+export const MERMAID_THEMES = {
+  'default': 'Default',
+  'dark': 'Dark', 
+  'forest': 'Forest',
+  'neutral': 'Neutral',
+  'catppuccin-mocha': 'Catppuccin Mocha',
+  'catppuccin-latte': 'Catppuccin Latte',
+  'catppuccin-macchiato': 'Catppuccin Macchiato',
+  'catppuccin-frappe': 'Catppuccin Frappé',
+};
+
+export const MERMAID_DIAGRAM_TYPES = {
+  'flowchart': 'Flowchart',
+  'sequence': 'Sequence Diagram',
+  'class': 'Class Diagram', 
+  'state': 'State Diagram',
+  'er': 'ER Diagram',
+  'gantt': 'Gantt Chart',
+  'pie': 'Pie Chart',
+  'gitGraph': 'Git Graph',
+  'c4': 'C4 Diagram',
+  'mindmap': 'Mind Map',
+  'timeline': 'Timeline',
+  'quadrant': 'Quadrant Chart',
 };
